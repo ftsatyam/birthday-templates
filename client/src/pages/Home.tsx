@@ -104,6 +104,11 @@ function Home() {
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1]);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [editorMode, setEditorMode] = useState(false);
+  const [editorName, setEditorName] = useState("your favorite person");
+  const [editorMessage, setEditorMessage] = useState("You make every day brighter. Here's to your best year yet!");
+  const [editorTheme, setEditorTheme] = useState("coral");
+  const [savedDesign, setSavedDesign] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -127,6 +132,30 @@ function Home() {
   };
 
   const scrollToTemplates = () => document.getElementById("templates")?.scrollIntoView({ behavior: "smooth" });
+
+  const openEditor = (template: Template) => {
+    setSelectedTemplate(template);
+    setEditorMode(true);
+    setSavedDesign(false);
+    setEditorName("your favorite person");
+    setEditorMessage("You make every day brighter. Here's to your best year yet!");
+    setEditorTheme(template.tone === "purple" ? "purple" : template.tone === "lime" ? "lime" : "coral");
+  };
+
+  const closeEditor = () => {
+    setSelectedTemplate(null);
+    setEditorMode(false);
+    setSavedDesign(false);
+  };
+
+  const editorThemes = [
+    { id: "coral", label: "Coral joy", accent: "#ff7057", surface: "#fff5ed" },
+    { id: "purple", label: "Purple party", accent: "#9978ee", surface: "#f1edff" },
+    { id: "lime", label: "Lime light", accent: "#9ebd44", surface: "#f3f9d9" },
+    { id: "blue", label: "Blue skies", accent: "#4a9fd6", surface: "#eaf6fc" },
+  ];
+
+  const activeEditorTheme = editorThemes.find((theme) => theme.id === editorTheme) ?? editorThemes[0];
 
   return (
     <div className="site-shell">
@@ -236,7 +265,7 @@ function Home() {
                 </div>
                 <div className="template-meta">
                   <p>{template.description}</p>
-                  <button className="card-link" onClick={() => setSelectedTemplate(template)}>View template <ArrowUpRight size={15} /></button>
+                  <button className="card-link" onClick={() => openEditor(template)}>Personalize card <ArrowUpRight size={15} /></button>
                 </div>
               </article>
             ))}
@@ -266,7 +295,7 @@ function Home() {
 
       <footer className="site-footer"><a className="brand" href="#top"><span className="brand-mark">w</span><span><strong>Wishwell</strong><small>celebrate beautifully</small></span></a><p>For the moments worth making a little more.</p><div className="footer-links"><a href="#templates">Cards</a><a href="#how-it-works">How it works</a><button onClick={() => notify("Contact us at hello@wishwell.cards")}>Say hello</button></div><span className="footer-copy">© 2026 Wishwell</span></footer>
 
-      {selectedTemplate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedTemplate(null)}><div className="preview-modal" role="dialog" aria-modal="true" aria-label={`${selectedTemplate.title} preview`} onClick={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close preview" onClick={() => setSelectedTemplate(null)}><X size={18} /></button><div className="modal-image" style={{ backgroundImage: `url(${selectedTemplate.image})` }}><span>{selectedTemplate.eyebrow}</span><h3>{selectedTemplate.title}</h3></div><div className="modal-content"><div className="eyebrow">A little something for them</div><h2>Make it <em>theirs.</em></h2><p>{selectedTemplate.description} Personalize this template with their name, your message and a little bit of your shared magic.</p><div className="modal-actions"><button className="button button-coral" onClick={() => { notify("Template ready to personalize"); setSelectedTemplate(null); }}>Use this template <ArrowUpRight size={16} /></button><button className="copy-link" onClick={() => notify("Preview link copied")}><Copy size={15} /> Copy link</button></div><div className="modal-note"><Check size={15} /> No account needed to start</div></div></div></div>}
+      {selectedTemplate && <div className="modal-backdrop" role="presentation" onClick={closeEditor}><div className={`preview-modal ${editorMode ? "editor-modal" : ""}`} role="dialog" aria-modal="true" aria-label={`${selectedTemplate.title} editor`} onClick={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close editor" onClick={closeEditor}><X size={18} /></button>{editorMode ? <><div className="editor-preview-pane" style={{ background: activeEditorTheme.surface }}><div className="editor-preview-label"><Sparkles size={14} /> Live preview</div><div className="editable-card" style={{ background: selectedTemplate.image ? `linear-gradient(180deg, rgba(20,20,24,.04), rgba(20,20,24,.22)), url(${selectedTemplate.image}) center/cover` : activeEditorTheme.surface }}><div className="editable-card-overlay" /><div className="editable-card-copy"><span style={{ color: activeEditorTheme.accent }}>FOR {editorName.toUpperCase()}</span><h3>Happy <i style={{ color: activeEditorTheme.accent }}>birthday,</i><br />beautiful.</h3><div className="editable-rule" style={{ background: activeEditorTheme.accent }} /><p>{editorMessage}</p></div></div><div className="preview-device-note"><span style={{ background: activeEditorTheme.accent }} /> Looks lovely on every screen</div></div><div className="editor-panel"><div className="eyebrow">Personalize your card</div><h2>Make it <em>theirs.</em></h2><p className="editor-helper">A few thoughtful details turn a pretty card into a very personal one.</p><label className="editor-label" htmlFor="editor-name">Their name</label><input id="editor-name" className="editor-input" value={editorName} maxLength={32} onChange={(event) => setEditorName(event.target.value)} placeholder="e.g. Maya" /><label className="editor-label" htmlFor="editor-message">Your message</label><textarea id="editor-message" className="editor-input editor-textarea" value={editorMessage} maxLength={140} onChange={(event) => setEditorMessage(event.target.value)} placeholder="Write something from the heart..." /><div className="editor-label">Choose a mood</div><div className="theme-swatches" role="radiogroup" aria-label="Choose a card color"><div className="theme-swatch-list">{editorThemes.map((theme) => <button key={theme.id} className={`theme-swatch ${editorTheme === theme.id ? "selected" : ""}`} style={{ background: theme.accent }} aria-label={theme.label} aria-checked={editorTheme === theme.id} role="radio" onClick={() => setEditorTheme(theme.id)}><span>{editorTheme === theme.id && <Check size={14} />}</span></button>)}</div><span className="theme-name">{activeEditorTheme.label}</span></div><div className="editor-actions"><button className="button button-dark" onClick={() => { setSavedDesign(true); notify("Your personalized card is ready to share"); }}>Save design <Check size={16} /></button><button className="copy-link" onClick={() => notify("Personalized link copied")}><Copy size={15} /> Copy preview link</button></div>{savedDesign && <div className="saved-design"><div className="saved-check"><Check size={15} /></div><div><strong>Looking good, {editorName}!</strong><span>Your card is ready to share with a little more joy.</span></div></div>}<div className="modal-note"><Check size={15} /> No account needed to start</div></div></> : <><div className="modal-image" style={{ backgroundImage: `url(${selectedTemplate.image})` }}><span>{selectedTemplate.eyebrow}</span><h3>{selectedTemplate.title}</h3></div><div className="modal-content"><div className="eyebrow">A little something for them</div><h2>Make it <em>theirs.</em></h2><p>{selectedTemplate.description} Personalize this template with their name, your message and a little bit of your shared magic.</p><div className="modal-actions"><button className="button button-coral" onClick={() => setEditorMode(true)}>Personalize this card <ArrowUpRight size={16} /></button><button className="copy-link" onClick={() => notify("Preview link copied")}><Copy size={15} /> Copy link</button></div><div className="modal-note"><Check size={15} /> No account needed to start</div></div></>}</div></div>}
       {toast && <div className="toast" role="status"><Check size={16} /> {toast}</div>}
     </div>
   );

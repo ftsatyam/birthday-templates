@@ -92,3 +92,9 @@ Before production launch, replace the remote demo image URLs with optimized, lic
 ## License
 
 MIT. See the repository for the complete source code and project configuration.
+
+## Interactive personalization editor
+
+Each template now opens a live personalization editor. Users can edit the recipient name and greeting, switch between Coral Joy, Purple Party, Lime Light, and Blue Skies themes, and see the card update immediately in the preview pane. The Save design action provides a completion state suitable for connecting to a future persistence or delivery service, while Copy preview link currently provides local feedback.
+
+The editor is intentionally client-side and dependency-free. Its state is local to the current session, making it easy to replace later with a personalization API, account-backed drafts, or a shareable route without changing the browse experience.
