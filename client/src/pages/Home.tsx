@@ -10,6 +10,9 @@ import {
   Search,
   Send,
   Sparkles,
+  ImagePlus,
+  Upload,
+  Trash2,
   Star,
   WandSparkles,
   X,
@@ -108,6 +111,9 @@ function Home() {
   const [editorName, setEditorName] = useState("your favorite person");
   const [editorMessage, setEditorMessage] = useState("You make every day brighter. Here's to your best year yet!");
   const [editorTheme, setEditorTheme] = useState("coral");
+  const [editorFont, setEditorFont] = useState("editorial");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoName, setPhotoName] = useState<string | null>(null);
   const [savedDesign, setSavedDesign] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -140,6 +146,9 @@ function Home() {
     setEditorName("your favorite person");
     setEditorMessage("You make every day brighter. Here's to your best year yet!");
     setEditorTheme(template.tone === "purple" ? "purple" : template.tone === "lime" ? "lime" : "coral");
+    setEditorFont("editorial");
+    setPhotoPreview(null);
+    setPhotoName(null);
   };
 
   const closeEditor = () => {
@@ -156,6 +165,34 @@ function Home() {
   ];
 
   const activeEditorTheme = editorThemes.find((theme) => theme.id === editorTheme) ?? editorThemes[0];
+  const fontStyles = [
+    { id: "editorial", label: "Editorial", sample: "Classic", family: '"Playfair Display", serif' },
+    { id: "friendly", label: "Friendly", sample: "Warm", family: '"DM Sans", sans-serif' },
+    { id: "handwritten", label: "Handwritten", sample: "Personal", family: '"Caveat", cursive' },
+    { id: "modern", label: "Modern", sample: "Clean", family: '"Space Grotesk", sans-serif' },
+  ];
+  const activeFontStyle = fontStyles.find((font) => font.id === editorFont) ?? fontStyles[0];
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      notify("Please choose an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      notify("Please choose an image under 5 MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhotoPreview(typeof reader.result === "string" ? reader.result : null);
+      setPhotoName(file.name);
+      setSavedDesign(false);
+      notify("Personal photo added to your card");
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="site-shell">
@@ -295,7 +332,7 @@ function Home() {
 
       <footer className="site-footer"><a className="brand" href="#top"><span className="brand-mark">w</span><span><strong>Wishwell</strong><small>celebrate beautifully</small></span></a><p>For the moments worth making a little more.</p><div className="footer-links"><a href="#templates">Cards</a><a href="#how-it-works">How it works</a><button onClick={() => notify("Contact us at hello@wishwell.cards")}>Say hello</button></div><span className="footer-copy">© 2026 Wishwell</span></footer>
 
-      {selectedTemplate && <div className="modal-backdrop" role="presentation" onClick={closeEditor}><div className={`preview-modal ${editorMode ? "editor-modal" : ""}`} role="dialog" aria-modal="true" aria-label={`${selectedTemplate.title} editor`} onClick={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close editor" onClick={closeEditor}><X size={18} /></button>{editorMode ? <><div className="editor-preview-pane" style={{ background: activeEditorTheme.surface }}><div className="editor-preview-label"><Sparkles size={14} /> Live preview</div><div className="editable-card" style={{ background: selectedTemplate.image ? `linear-gradient(180deg, rgba(20,20,24,.04), rgba(20,20,24,.22)), url(${selectedTemplate.image}) center/cover` : activeEditorTheme.surface }}><div className="editable-card-overlay" /><div className="editable-card-copy"><span style={{ color: activeEditorTheme.accent }}>FOR {editorName.toUpperCase()}</span><h3>Happy <i style={{ color: activeEditorTheme.accent }}>birthday,</i><br />beautiful.</h3><div className="editable-rule" style={{ background: activeEditorTheme.accent }} /><p>{editorMessage}</p></div></div><div className="preview-device-note"><span style={{ background: activeEditorTheme.accent }} /> Looks lovely on every screen</div></div><div className="editor-panel"><div className="eyebrow">Personalize your card</div><h2>Make it <em>theirs.</em></h2><p className="editor-helper">A few thoughtful details turn a pretty card into a very personal one.</p><label className="editor-label" htmlFor="editor-name">Their name</label><input id="editor-name" className="editor-input" value={editorName} maxLength={32} onChange={(event) => setEditorName(event.target.value)} placeholder="e.g. Maya" /><label className="editor-label" htmlFor="editor-message">Your message</label><textarea id="editor-message" className="editor-input editor-textarea" value={editorMessage} maxLength={140} onChange={(event) => setEditorMessage(event.target.value)} placeholder="Write something from the heart..." /><div className="editor-label">Choose a mood</div><div className="theme-swatches" role="radiogroup" aria-label="Choose a card color"><div className="theme-swatch-list">{editorThemes.map((theme) => <button key={theme.id} className={`theme-swatch ${editorTheme === theme.id ? "selected" : ""}`} style={{ background: theme.accent }} aria-label={theme.label} aria-checked={editorTheme === theme.id} role="radio" onClick={() => setEditorTheme(theme.id)}><span>{editorTheme === theme.id && <Check size={14} />}</span></button>)}</div><span className="theme-name">{activeEditorTheme.label}</span></div><div className="editor-actions"><button className="button button-dark" onClick={() => { setSavedDesign(true); notify("Your personalized card is ready to share"); }}>Save design <Check size={16} /></button><button className="copy-link" onClick={() => notify("Personalized link copied")}><Copy size={15} /> Copy preview link</button></div>{savedDesign && <div className="saved-design"><div className="saved-check"><Check size={15} /></div><div><strong>Looking good, {editorName}!</strong><span>Your card is ready to share with a little more joy.</span></div></div>}<div className="modal-note"><Check size={15} /> No account needed to start</div></div></> : <><div className="modal-image" style={{ backgroundImage: `url(${selectedTemplate.image})` }}><span>{selectedTemplate.eyebrow}</span><h3>{selectedTemplate.title}</h3></div><div className="modal-content"><div className="eyebrow">A little something for them</div><h2>Make it <em>theirs.</em></h2><p>{selectedTemplate.description} Personalize this template with their name, your message and a little bit of your shared magic.</p><div className="modal-actions"><button className="button button-coral" onClick={() => setEditorMode(true)}>Personalize this card <ArrowUpRight size={16} /></button><button className="copy-link" onClick={() => notify("Preview link copied")}><Copy size={15} /> Copy link</button></div><div className="modal-note"><Check size={15} /> No account needed to start</div></div></>}</div></div>}
+      {selectedTemplate && <div className="modal-backdrop" role="presentation" onClick={closeEditor}><div className={`preview-modal ${editorMode ? "editor-modal" : ""}`} role="dialog" aria-modal="true" aria-label={`${selectedTemplate.title} editor`} onClick={(event) => event.stopPropagation()}><button className="modal-close" aria-label="Close editor" onClick={closeEditor}><X size={18} /></button>{editorMode ? <><div className="editor-preview-pane" style={{ background: activeEditorTheme.surface }}><div className="editor-preview-label"><Sparkles size={14} /> Live preview</div><div className="editable-card" style={{ background: photoPreview ? `linear-gradient(180deg, rgba(20,20,24,.04), rgba(20,20,24,.3)), url(${photoPreview}) center/cover` : selectedTemplate.image ? `linear-gradient(180deg, rgba(20,20,24,.04), rgba(20,20,24,.22)), url(${selectedTemplate.image}) center/cover` : activeEditorTheme.surface }}><div className="editable-card-overlay" /><div className="editable-card-copy"><span style={{ color: activeEditorTheme.accent }}>FOR {editorName.toUpperCase()}</span><h3 style={{ fontFamily: activeFontStyle.family }}>Happy <i style={{ color: activeEditorTheme.accent }}>birthday,</i><br />beautiful.</h3><div className="editable-rule" style={{ background: activeEditorTheme.accent }} /><p style={{ fontFamily: activeFontStyle.family }}>{editorMessage}</p></div></div><div className="preview-device-note"><span style={{ background: activeEditorTheme.accent }} /> Looks lovely on every screen</div></div><div className="editor-panel"><div className="eyebrow">Personalize your card</div><h2>Make it <em>theirs.</em></h2><p className="editor-helper">A few thoughtful details turn a pretty card into a very personal one.</p><label className="editor-label" htmlFor="editor-name">Their name</label><input id="editor-name" className="editor-input" value={editorName} maxLength={32} onChange={(event) => setEditorName(event.target.value)} placeholder="e.g. Maya" /><div className="editor-label editor-label-with-action"><span>Add a personal photo</span>{photoPreview && <button className="remove-photo" type="button" onClick={() => { setPhotoPreview(null); setPhotoName(null); notify("Personal photo removed"); }}><Trash2 size={12} /> Remove</button>}</div><label className={`photo-upload ${photoPreview ? "has-photo" : ""}`} htmlFor="editor-photo"><span className="photo-upload-icon">{photoPreview ? <ImagePlus size={17} /> : <Upload size={17} />}</span><span><strong>{photoPreview ? "Change your photo" : "Upload a photo"}</strong><small>{photoPreview ? photoName : "JPG, PNG or WEBP · up to 5 MB"}</small></span><input id="editor-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoUpload} /></label><label className="editor-label" htmlFor="editor-message">Your message</label><textarea id="editor-message" className="editor-input editor-textarea" value={editorMessage} maxLength={140} onChange={(event) => setEditorMessage(event.target.value)} placeholder="Write something from the heart..." /><div className="editor-label">Choose a mood</div><div className="theme-swatches" role="radiogroup" aria-label="Choose a card color"><div className="theme-swatch-list">{editorThemes.map((theme) => <button key={theme.id} className={`theme-swatch ${editorTheme === theme.id ? "selected" : ""}`} style={{ background: theme.accent }} aria-label={theme.label} aria-checked={editorTheme === theme.id} role="radio" onClick={() => setEditorTheme(theme.id)}><span>{editorTheme === theme.id && <Check size={14} />}</span></button>)}</div><span className="theme-name">{activeEditorTheme.label}</span></div><div className="editor-label">Choose a type style</div><div className="font-style-grid" role="radiogroup" aria-label="Choose a font style">{fontStyles.map((font) => <button key={font.id} type="button" className={`font-style-option ${editorFont === font.id ? "selected" : ""}`} style={{ fontFamily: font.family }} aria-label={font.label} aria-checked={editorFont === font.id} role="radio" onClick={() => { setEditorFont(font.id); setSavedDesign(false); }}><span className="font-sample">{font.sample}</span><small>{font.label}</small>{editorFont === font.id && <Check className="font-selected-check" size={13} />}</button>)}</div><div className="editor-actions"><button className="button button-dark" onClick={() => { setSavedDesign(true); notify("Your personalized card is ready to share"); }}>Save design <Check size={16} /></button><button className="copy-link" onClick={() => notify("Personalized link copied")}><Copy size={15} /> Copy preview link</button></div>{savedDesign && <div className="saved-design"><div className="saved-check"><Check size={15} /></div><div><strong>Looking good, {editorName}!</strong><span>Your card is ready to share with a little more joy.</span></div></div>}<div className="modal-note"><Check size={15} /> No account needed to start</div></div></> : <><div className="modal-image" style={{ backgroundImage: `url(${selectedTemplate.image})` }}><span>{selectedTemplate.eyebrow}</span><h3>{selectedTemplate.title}</h3></div><div className="modal-content"><div className="eyebrow">A little something for them</div><h2>Make it <em>theirs.</em></h2><p>{selectedTemplate.description} Personalize this template with their name, your message and a little bit of your shared magic.</p><div className="modal-actions"><button className="button button-coral" onClick={() => setEditorMode(true)}>Personalize this card <ArrowUpRight size={16} /></button><button className="copy-link" onClick={() => notify("Preview link copied")}><Copy size={15} /> Copy link</button></div><div className="modal-note"><Check size={15} /> No account needed to start</div></div></>}</div></div>}
       {toast && <div className="toast" role="status"><Check size={16} /> {toast}</div>}
     </div>
   );

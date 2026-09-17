@@ -98,3 +98,8 @@ MIT. See the repository for the complete source code and project configuration.
 Each template now opens a live personalization editor. Users can edit the recipient name and greeting, switch between Coral Joy, Purple Party, Lime Light, and Blue Skies themes, and see the card update immediately in the preview pane. The Save design action provides a completion state suitable for connecting to a future persistence or delivery service, while Copy preview link currently provides local feedback.
 
 The editor is intentionally client-side and dependency-free. Its state is local to the current session, making it easy to replace later with a personalization API, account-backed drafts, or a shareable route without changing the browse experience.
+
+
+### Photo and font customization
+
+The editor also supports a local personal photo upload for JPG, PNG, and WEBP files up to 5 MB. The image is previewed immediately on the card and can be replaced or removed before saving. Users can choose from four type directions—Editorial, Friendly, Handwritten, and Modern—which update the live card typography without changing the overall layout.
